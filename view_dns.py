@@ -7,6 +7,7 @@ dns_info=dns_options.read()
 dns_options.close()
 dns_list=dns_info.split('\n')
 for every_line in dns_list:
-    if not re.match('^#',every_line):
+	judge_line=re.sub(' ','',every_line)
+    if not re.match('^#',judge_line):
         if re.findall('\d+\.\d+\.\d+\.\d+',every_line):
             print every_line
