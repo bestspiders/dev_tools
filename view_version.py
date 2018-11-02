@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Author: Nixawk
+# Author: wangxin,Nixawk
 
 """
 $ python2.7 vscan.py
@@ -16,7 +16,7 @@ $ python2.7 vscan.py
            'probestring': 'GET / HTTP/1.0\\r\\n\\r\\n'}}
 """
 
-import os
+import os,urllib2,commands
 import re
 import codecs
 import socket
@@ -323,7 +323,7 @@ class ServiceProbe(Nmap):
 class ServiceScan(ServiceProbe):
 
     def __init__(self, filename):
-        self.allprobes = self.parse_nmap_service_probe_file(filename)
+        self.allprobes = self.parse_nmap_service_probe_file(filename)#返回已经解析好的字典
 
     def scan(self, host, port, protocol):
 
@@ -406,6 +406,7 @@ class ServiceScan(ServiceProbe):
         """
 
         data = ''
+        print payload,host,timeout
         try:
             with contextlib.closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as client:
                 client.settimeout(timeout)
@@ -416,7 +417,8 @@ class ServiceScan(ServiceProbe):
                     if not _: break
                     data += _
         except Exception as err:
-            log.exception("{} : {} - {}".format(host, port, err))
+            pass
+#            log.exception("{} : {} - {}".format(host, port, err))
 
         return data
 
@@ -433,7 +435,8 @@ class ServiceScan(ServiceProbe):
                     if not _: break
                     data += _
         except Exception as err:
-            log.exception("{} : {} - {}".format(host, port, err))
+            pass
+#            log.exception("{} : {} - {}".format(host, port, err))
 
         return data
 
@@ -477,7 +480,8 @@ class ServiceScan(ServiceProbe):
                     nmap_fingerprint = self.match_versioninfo(versioninfo)
                     break
         except Exception as err:
-            log.exception("{}".format(err))
+            pass
+#            log.exception("{}".format(err))
 
         return nmap_pattern, nmap_fingerprint
 
@@ -602,11 +606,33 @@ class ServiceScan(ServiceProbe):
                         bret = True
 
         return bret
-
-
+def down_nmap_service(filename,proxy_ip,nmap_probe_url):
+    if not os.path.exists(filename):
+        if proxy_ip:
+            proxy_support = urllib2.ProxyHandler({"http":proxy_ip,'https':proxy_ip})
+            opener = urllib2.build_opener(proxy_support)
+            urllib2.install_opener(opener)
+        req=urllib2.Request(url=nmap_probe_url)
+        res=urllib2.urlopen(req)
+        script_content=res.read()
+        save_nmap=open(filename,'w')
+        save_nmap.write(script_content)
+        save_nmap.close()
 if __name__ == "__main__":
     from pprint import pprint
-
-    nmap = ServiceScan("./nmap-service-probes")
-    data = nmap.scan("www.gnu.org", 80, "tcp")
-    pprint(data)
+    filename='/tmp/nmap-service-probes'
+    nmap_probe_url=''#nmap-service-probe文件地址下载
+    proxy_ip=''#如果下载需要proxy,则填写proxy的ip和端口
+    down_nmap_service(filename=filename,proxy_ip=proxy_ip,nmap_probe_url=nmap_probe_url)
+    nmap = ServiceScan(filename)
+    all_connect=commands.getstatusoutput('netstat -anpl')
+    connect_list=all_connect[1].split('\n')
+    all_ip_info=[]
+    for every_line in connect_list:
+        line_list=every_line.split()
+        if re.match('\d+\.\d+\.\d+\.\d+\:\d+',line_list[3]):
+            if not line_list[3] in all_ip_info:
+                all_ip_info.append(line_list[3])
+                ip_info=line_list[3].split(':')
+                data = nmap.scan(ip_info[0], ip_info[1], "tcp")
+                pprint(data)

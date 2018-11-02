@@ -17,3 +17,7 @@ select_number=1024
 获取所有的挂载
 # view_route.py<br>
 获取所有的路由
+# view_version.py<br>
+**Python ENV:** 2.6+<br>
+参考了此脚本编写https://github.com/nixawk/nmap_vscan/blob/master/nmap_vscan/vscan.py<br>
+获取所有应用版本<br>
