@@ -1,5 +1,5 @@
 #-*- coding:utf-8 -*-
-import commands,os,re,base64
+import commands,os,re
 if os.path.exists('/var/spool/cron/tabs/root'):
     crontab_options=open('/var/spool/cron/tabs/root','r')
     crontab_content=crontab_options.read()
@@ -13,4 +13,4 @@ for every_line in crontab_content.split('\n'):
     if not  re.findall(' *#',every_line):
         if re.findall('\*+',every_line):
             all_content=all_content+every_line+'\n'
-print base64.b64encode(all_content)
+print all_content

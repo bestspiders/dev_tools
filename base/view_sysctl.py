@@ -1,5 +1,5 @@
 #-*- coding:utf-8 -*-
-import os,re,base64
+import os,re
 if os.path.exists('/etc/sysctl.conf'):
     all_content=''
     sysctl_options=open('/etc/sysctl.conf','r')
